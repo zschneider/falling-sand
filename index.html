@@ -1,0 +1,47 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Falling Sand Demo</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        <script src="js/easel.js"></script>
+        <script src="js/create.js"></script>
+        <script src="js/sand.js"></script>
+        <script src="js/farbtastic.js"></script>
+        <link rel="stylesheet" href="css/farbtastic.css" type="text/css" />
+        <script type="text/javascript">
+          $(document).ready(function() {
+            cp = $.farbtastic('#colorpicker', set_up_pixel);
+            cp.setColor("#CC9900");
+
+            $("#b_size").on("input", function(){
+               MOUSE_WIDTH = this.value;
+               MOUSE_HEIGHT = this.value;
+            });
+
+            $("#c_rate").on("input", function(){
+               CREATION_SPEED = this.value;
+            });
+          });
+        </script>
+    </head>
+    <body onload="init();">
+        <div align="center">
+            <div style="display: inline-block; border: black solid 1px;">
+                <canvas id="game-canvas" width="512" height="384"></canvas>
+            </div>
+            <div style="display: inline-block; position: relative;">
+                <div id="colorpicker">
+                </div>
+                <br>
+                <div id="select-brush-size">
+                    <label for="b_size">Brush Size</label>
+                    <input id="b_size" type="text" value="10">
+                </div>
+                <div id="select-creation-rate">
+                    <label for="c_rate">Creation Rate</label>
+                    <input id="c_rate" type="text" value="10">
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
