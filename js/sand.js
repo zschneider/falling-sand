@@ -1,4 +1,4 @@
-// current stess test yields 85000 particles before FPS dips below 18
+// current stess test yields 85000 particles before FPS dips below 18... goal is 120000
 
 var stage;
 var canvas;
@@ -140,7 +140,9 @@ function game_update() {
             for (x = 0; x < canvas.width; x++) {
                 var ind = convert_xy_to_index(x,y);
                 if (grid[ind] !== null) {
-                    grid[ind].update();
+                    if (grid[ind].frozen !== true) {
+                        grid[ind].update();
+                    }
                 }       
             }
         }
@@ -148,7 +150,9 @@ function game_update() {
             for (x = canvas.width - 1; x >= 0; x--) {
                 var ind = convert_xy_to_index(x,y);
                 if (grid[ind] !== null) {
-                    grid[ind].update();
+                    if (grid[ind].frozen !== true) {
+                        grid[ind].update();
+                    }
                 }       
             }
         }
@@ -166,6 +170,8 @@ var Particle = function (x, y) {
     // get index
     particle_counter++;
     grid[convert_xy_to_index(x, y)] = this;
+    this.frozen_counter = 0;
+    this.frozen = false;
 }
 
 Particle.prototype.update = function () {
@@ -173,6 +179,7 @@ Particle.prototype.update = function () {
     var right_open = false;
     // if nothing immediately below, move down!
     if (grid[convert_xy_to_index(this.shape.x, this.shape.y + FALLING_SPEED)] === null) {
+        this.frozen_counter = 0;
         grid[convert_xy_to_index(this.shape.x, this.shape.y)] = null;
         this.shape.y += FALLING_SPEED;
         grid[convert_xy_to_index(this.shape.x, this.shape.y)] = this;
@@ -180,9 +187,11 @@ Particle.prototype.update = function () {
     }
     // look to left and right
     if (grid[convert_xy_to_index(this.shape.x - 1, this.shape.y + FALLING_SPEED)] === null) {
+        this.frozen_counter = 0;
         left_open = true;
     }
     if (grid[convert_xy_to_index(this.shape.x + 1, this.shape.y + FALLING_SPEED)] === null) {
+        this.frozen_counter = 0;
         right_open = true;
     }
     // nothing on either side
@@ -215,6 +224,12 @@ Particle.prototype.update = function () {
         this.shape.x += 1;
 
         grid[convert_xy_to_index(this.shape.x, this.shape.y)] = this;
+    }
+    else {
+        this.frozen_counter++;
+        if (this.frozen_counter > 10) {
+            this.frozen = true;
+        }
     }
 }
 
