@@ -1,5 +1,3 @@
-// current stess test yields 85000 particles before FPS dips below 18... goal is 120000
-
 var stage;
 var canvas;
 var grid;
@@ -54,10 +52,11 @@ function init() {
     var y;
     for (x = 0; x < canvas.width; x++) {
         for (y = 0; y < canvas.height; y++) {
-            if (x <= 5 || x >= canvas.width - 5 || y === 0 || y >= canvas.height - 5) {
+            if (x <= 5 || x >= canvas.width - 5 || y <= 5 || y >= canvas.height - 5) {
                 // add wall particles
                 var wall = new Wall(x, y);
                 stage.addChild(wall.shape);
+                grid[convert_xy_to_index(x, y)] = wall;
             }
             else {
                 grid[convert_xy_to_index(x, y)] = null;
@@ -127,10 +126,10 @@ function game_update() {
         for (i = 0; i < CREATION_SPEED; i++) {    
             var x = mousex + Math.floor((Math.random()*MOUSE_WIDTH)-MOUSE_WIDTH/2);
             var y = mousey + Math.floor((Math.random()*MOUSE_HEIGHT)-MOUSE_HEIGHT/2);
-            var index = convert_xy_to_index(x, y);
-            if (index < grid.length && index >= 0 && grid[index] === null) {
+            if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height && grid[convert_xy_to_index(x, y)] === null) {
                 var particle = new Particle(x, y);
                 stage.addChild(particle.shape);
+                grid[convert_xy_to_index(x, y)] = particle;
             }
         }
     }
@@ -169,7 +168,6 @@ var Particle = function (x, y) {
     this.shape.gotoAndStop(0);
     // get index
     particle_counter++;
-    grid[convert_xy_to_index(x, y)] = this;
     this.frozen_counter = 0;
     this.frozen = false;
 }
@@ -177,26 +175,27 @@ var Particle = function (x, y) {
 Particle.prototype.update = function () {
     var left_open = false;
     var right_open = false;
+    var cur_ind = convert_xy_to_index(this.shape.x, this.shape.y)
     // if nothing immediately below, move down!
     if (grid[convert_xy_to_index(this.shape.x, this.shape.y + FALLING_SPEED)] === null) {
         this.frozen_counter = 0;
-        grid[convert_xy_to_index(this.shape.x, this.shape.y)] = null;
+        grid[cur_ind] = null;
         this.shape.y += FALLING_SPEED;
         grid[convert_xy_to_index(this.shape.x, this.shape.y)] = this;
         return;
     }
     // look to left and right
-    if (grid[convert_xy_to_index(this.shape.x - 1, this.shape.y + FALLING_SPEED)] === null) {
+    if (this.shape.x - 1 >= 0 && grid[convert_xy_to_index(this.shape.x - 1, this.shape.y + FALLING_SPEED)] === null) {
         this.frozen_counter = 0;
         left_open = true;
     }
-    if (grid[convert_xy_to_index(this.shape.x + 1, this.shape.y + FALLING_SPEED)] === null) {
+    if (this.shape.x + 1 < canvas.width && grid[convert_xy_to_index(this.shape.x + 1, this.shape.y + FALLING_SPEED)] === null) {
         this.frozen_counter = 0;
         right_open = true;
     }
     // nothing on either side
     if (left_open && right_open) {
-        grid[convert_xy_to_index(this.shape.x, this.shape.y)] = null;
+        grid[cur_ind] = null;
         this.shape.y += FALLING_SPEED;
         // left
         if (up_count % 2 === 0) {
@@ -209,7 +208,7 @@ Particle.prototype.update = function () {
     }
     // empty left
     else if (left_open) {
-        grid[convert_xy_to_index(this.shape.x, this.shape.y)] = null;
+        grid[cur_ind] = null;
 
         this.shape.y += FALLING_SPEED;
         this.shape.x -= 1;
@@ -218,7 +217,7 @@ Particle.prototype.update = function () {
     }
     // empty right
     else if (right_open) {
-        grid[convert_xy_to_index(this.shape.x, this.shape.y)] = null;
+        grid[cur_ind] = null;
 
         this.shape.y += FALLING_SPEED;
         this.shape.x += 1;
@@ -241,6 +240,7 @@ var Wall = function (x, y) {
     this.shape.gotoAndStop(0);
     particle_counter++;
     grid[convert_xy_to_index(x, y)] = this;
+    this.frozen = true;
 }
 
 Wall.prototype.update = function () {
